@@ -55,30 +55,30 @@ class PhonebookApp:
         if self.input_error(fname,lname,phone):
                 contact = pr(fname,lname,phone)
                 self.contacts.append(contact)
-                self.contact_listbox.insert(tk.END, f"{fname} {lname}")
+                self.show_contacts = self.contacts
+                self.update_contact_listbox()
                 add_popup.destroy()
-                self.clear_entries()
-        else:
-            messagebox.showwarning("Input Error", "Name should contain only letters, and Phone should contain only digits.")
+                
+        
     
     def display_contact_details(self, event):
         selected_index = self.contact_listbox.curselection()
         if selected_index:
             selected_contact = self.contacts[selected_index[0]]
 
-            # Create a popup window for contact info, edit, and delete options
+        
             contact_info_popup = tk.Toplevel(self.root)
             contact_info_popup.title("Contact Information")
 
-            # Labels
+            
             label_name = tk.Label(contact_info_popup, text=f"{selected_contact.first_name}  {selected_contact.last_name}")
             label_phone = tk.Label(contact_info_popup, text=f"Phone: {selected_contact.phone_number}")
 
-            # Buttons in contact info popup
+            
             edit_button = tk.Button(contact_info_popup, text="Edit", command=lambda: self.edit_contact(selected_index[0], contact_info_popup))
             delete_button = tk.Button(contact_info_popup, text="Delete", command=lambda: self.delete_contact(selected_index[0], contact_info_popup))
 
-            # Grid layout for contact info popup
+            
             label_name.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
             label_phone.grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
             edit_button.grid(row=2, column=0, pady=5)
@@ -86,9 +86,10 @@ class PhonebookApp:
 
     def delete_contact(self,index, contact_info_popup):
         self.contacts.pop(index)
-        self.contact_listbox.delete(index)
+        self.show_contacts = self.contacts
+        self.update_contact_listbox()
         contact_info_popup.destroy()
-        self.clear_entries()
+        
         
     def edit_contact(self,index,contact_info_popup):
         edit_window = tk.Toplevel(self.root)
@@ -115,14 +116,17 @@ class PhonebookApp:
         save_button.grid(row=3, column=0, columnspan=2, pady=10)
 
     def save_changes(self, index, fname , lname , phone , edit_window, contact_info_popup):
+        x = self.contacts.pop(index)
         if self.input_error(fname,lname,phone):
-            self.contacts[index].update(fname,lname,phone)
+            x.update(fname,lname,phone)
             messagebox.showinfo("Success", "Contact updated successfully.")
             edit_window.destroy()
             contact_info_popup.destroy()
-            self.clear_entries()
-        else:
-            messagebox.showwarning("Input Error", "Name should contain only letters, and Phone should contain only digits.")
+            self.contacts.append(x) 
+            self.show_contacts = self.contacts
+            self.update_contact_listbox()
+        else :
+            self.contacts.append(x)
     
     def save_contacts(self):
         with open(self.csv_file, mode="w", newline='') as file:
@@ -137,7 +141,7 @@ class PhonebookApp:
         if search_name == '*':
             self.show_contacts=self.contacts
         elif search_name.isalpha():
-            self.show_contacts = [contact for contact in self.contacts if (search_name.lower() in contact.first_name.lower()) or (search_name.lower() in contact.last_name.lower())]
+            self.show_contacts = [contact for contact in self.contacts if (search_name.lower() in contact.first_name.lower() or search_name.lower in contact.last_name.lower()) or (search_name.lower() in contact.last_name.lower())]
         elif search_name.isdigit():
             self.show_contacts = [contact for contact in self.contacts if search_name in contact.phone_number]
         else:
@@ -145,11 +149,6 @@ class PhonebookApp:
         if not self.show_contacts.__len__:
             messagebox.showinfo("Search Results", "No matching contacts found.")
         self.update_contact_listbox()
-            
-    def clear_entries(self):
-        self.entry_fname.delete(0, tk.END)
-        self.entry_lname.delete(0, tk.END)
-        self.entry_phone.delete(0, tk.END)
         
     def load_contacts_from_csv(self,contact_listbox):
         try:
@@ -158,26 +157,29 @@ class PhonebookApp:
                 for row in reader:
                     contact = pr(row["First Name"], row["Last Name"], row["Phone"],row["Craete Date"])
                     self.contacts.append(contact)
-                    self.contact_listbox.insert(tk.END, f"{contact.first_name} {contact.last_name}")
+                
                 self.show_contacts=self.contacts
+                self.update_contact_listbox()
         except FileNotFoundError:
             open(self.csv_file, 'w').close()
     
     def input_error(self,fname,lname,phone):
         if fname.isalpha() and lname.isalpha() and phone.isdigit():
-            if fname.len >= 30 :
+            if len(fname) >= 30 :
                 messagebox.showerror('Input Error', 'Last Name should be less than 30 characters')
-            if lname.len >= 30 :
+            elif len(lname) >= 30 :
                 messagebox.showerror('Input Error', 'Last Name should be less than 30 characters')
-            if phone.len > 11 :
-                messagebox.showerror('Input Error','Phone number should be of length 11 only')
-            if any(contact.phone_number == phone for contact in self.contacts):
+            elif len(phone) != 11 :
+                messagebox.showerror('Input Error','Phone number should be 11 digits only')
+            elif any(contact.phone_number == phone for contact in self.contacts):
                 messagebox.showwarning("Duplicate Phone Number", "Contact with the same phone number already exists.")
                 
             elif any(contact.first_name == fname and contact.last_name == lname for contact in self.contacts):
                 messagebox.showwarning("Duplicate Phone Number", "Contact with the same phone number already exists.")
             else:
                 return True
+        else :
+            messagebox.showwarning("Input Error", "Name should contain only letters, and Phone should contain only digits.")
         return False
     
     def show_sort_popup(self):
@@ -215,9 +217,9 @@ class PhonebookApp:
         if sort_criteria == "Date Added":
             self.show_contacts.sort(key=lambda x: x.create_date)
         elif sort_criteria == "First Name":
-            self.show_contacts.sort(key=lambda x: x.first_name)
+            self.show_contacts.sort(key=lambda x: x.first_name.lower())
         elif sort_criteria == "Last Name":
-            self.show_contacts.sort(key=lambda x: x.last_name)
+            self.show_contacts.sort(key=lambda x: x.last_name.lower())
         elif sort_criteria == "Phone Number":
             self.show_contacts.sort(key=lambda x: x.phone_number)
 
