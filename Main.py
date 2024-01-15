@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 import csv
-from Persion import Person as pr
+from Models.Persion import Person as pr
 
 class PhonebookApp:
     def __init__(self, root):
@@ -133,12 +133,11 @@ class PhonebookApp:
                 writer.writerow(contact.__str__())
 
     def search_contact(self):
-        search_name = simpledialog.askstring("Search", "Enter name Or Number to search:")
-        self.contact_listbox.delete(0, tk.END)  
+        search_name = simpledialog.askstring("Search", "Enter name Or Number to search:") 
         if search_name == '*':
             self.show_contacts=self.contacts
         elif search_name.isalpha():
-            self.show_contacts = [contact for contact in self.contacts if search_name.lower() in contact.first_name.lower() or contact.last_name.lower()]
+            self.show_contacts = [contact for contact in self.contacts if (search_name.lower() in contact.first_name.lower()) or (search_name.lower() in contact.last_name.lower())]
         elif search_name.isdigit():
             self.show_contacts = [contact for contact in self.contacts if search_name in contact.phone_number]
         else:
@@ -160,6 +159,7 @@ class PhonebookApp:
                     contact = pr(row["First Name"], row["Last Name"], row["Phone"],row["Craete Date"])
                     self.contacts.append(contact)
                     self.contact_listbox.insert(tk.END, f"{contact.first_name} {contact.last_name}")
+                self.show_contacts=self.contacts
         except FileNotFoundError:
             open(self.csv_file, 'w').close()
     
