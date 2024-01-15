@@ -165,6 +165,12 @@ class PhonebookApp:
     
     def input_error(self,fname,lname,phone):
         if fname.isalpha() and lname.isalpha() and phone.isdigit():
+            if fname.len >= 30 :
+                messagebox.showerror('Input Error', 'Last Name should be less than 30 characters')
+            if lname.len >= 30 :
+                messagebox.showerror('Input Error', 'Last Name should be less than 30 characters')
+            if phone.len > 11 :
+                messagebox.showerror('Input Error','Phone number should be of length 11 only')
             if any(contact.phone_number == phone for contact in self.contacts):
                 messagebox.showwarning("Duplicate Phone Number", "Contact with the same phone number already exists.")
                 
