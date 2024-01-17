@@ -59,8 +59,6 @@ class PhonebookApp:
                 self.update_contact_listbox()
                 add_popup.destroy()
                 
-        
-    
     def display_contact_details(self, event):
         selected_index = self.contact_listbox.curselection()
         if selected_index:
@@ -89,8 +87,7 @@ class PhonebookApp:
         self.show_contacts = self.contacts
         self.update_contact_listbox()
         contact_info_popup.destroy()
-        
-        
+            
     def edit_contact(self,index,contact_info_popup):
         edit_window = tk.Toplevel(self.root)
         edit_window.title("Edit Contact")
